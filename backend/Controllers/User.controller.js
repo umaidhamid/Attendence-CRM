@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import User from "../models/User.model.js";
 import nodemailer from "nodemailer";
-
+import GenerateToken from "../utils/GenrateToken.js";
 export const createUser = async (req, res) => {
   try {
     const { userName, email, role } = req.body;
@@ -26,14 +26,7 @@ export const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // 5. Create user
-    const newUser = await User.create({
-      userName,
-      email,
-      role,
-      password: hashedPassword,
-      passwordSetupToken,
-      passwordSetupExpires: Date.now() + 30 * 60 * 1000,
-    });
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -52,7 +45,14 @@ export const createUser = async (req, res) => {
     <p>This link will expire in 30 minutes.</p>
   `,
     });
-
+    const newUser = await User.create({
+      userName,
+      email,
+      role,
+      password: hashedPassword,
+      passwordSetupToken,
+      passwordSetupExpires: Date.now() + 60 * 60 * 1000,
+    });
     res.status(201).json({
       message: "User created successfully",
       user: {
@@ -154,5 +154,48 @@ export const setPassword = async (req, res) => {
     return res.status(500).json({
       message: "Something went wrong",
     });
+  }
+};
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ msg: "Email and password are required" });
+    }
+
+  
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "User does not exist" });
+    }
+
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ msg: "Invalid credentials" });
+    }
+    const userData = {
+      _id: user._id,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+    const token = GenerateToken(user);
+    res.cookie("AttendenceToken", token, {
+      httpsOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    return res.status(200).json({
+      msg: "Login successful",
+      user: userData,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Server error" });
   }
 };

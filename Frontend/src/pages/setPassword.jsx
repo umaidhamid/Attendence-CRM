@@ -24,8 +24,8 @@ const SetPassword = ({ data }) => {
 
     setError("");
     setLoading(true);
-    api
-      .patch("/user/setpassword", { email, token, password })
+    axios
+      .patch("http://localhost:5000/user/setpassword", { email, token, password })
       .then((e) => {
         setTimeout(() => {
           toast.success("Password updated successfully!");
@@ -35,7 +35,8 @@ const SetPassword = ({ data }) => {
       })
       .catch((e) => {
         setLoading(false);
-        toast.error(e.error || "Something went wrong");
+        console.log(e.message)
+        toast.error(e.response?.data?.message || "Something went wrong");
       });
   };
 

@@ -5,6 +5,7 @@ dotenv.config();
 //   "EMAIL_PASS length:",
 //   process.env.EMAIL_PASS ? process.env.EMAIL_PASS: "MISSING"
 // );
+import { authMiddleware } from "./middleware/auth.middleware.js";
 import cors from "cors";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -15,9 +16,16 @@ connectDB();
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin:
+      process.env.NODE_ENV === "development"
+        ? process.env.LOCAL_URL
+        : process.env.FRONTEND_URL,
+
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+
     allowedHeaders: ["Content-Type", "Authorization"],
+
+    credentials: true, // enable cookies / auth headers
   })
 );
 
@@ -29,6 +37,13 @@ app.get("/", (req, res) => {
 });
 const PORT = process.env.PORT || 5000;
 app.use("/user", userRouter);
+
+// auth middleware
+app.get("/isAuth", authMiddleware, (req, res) => {
+  const { role, id } = req.user;
+  return res.status(200).json({ data: { role, id } });
+});
+
 app.listen(PORT, () => {
   console.log(`running on port ${PORT}`);
 });

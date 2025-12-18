@@ -29,9 +29,10 @@ const Verify = () => {
         }, 1500);
       })
       .catch((err) => {
-        console.log("error in catch ")
+        console.log("error in catch ");
         setTimeout(() => {
           setLoading(false);
+          setVerifying(false);
           setError(err.response?.data?.message || "Verification failed");
         }, 1500);
       });
@@ -45,7 +46,7 @@ const Verify = () => {
 
       {!loading && error && <h2 className="text-red-500 text-xl">{error}</h2>}
 
-      {!loading && <SetPassword data={user} />}
+      {!loading && verifying && <SetPassword data={user} />}
     </div>
   );
 };
