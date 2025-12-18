@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import User from "../models/User.model.js";
 import nodemailer from "nodemailer";
+
 export const createUser = async (req, res) => {
   try {
     const { userName, email, role } = req.body;
@@ -31,7 +32,7 @@ export const createUser = async (req, res) => {
       role,
       password: hashedPassword,
       passwordSetupToken,
-      passwordSetupExpires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      passwordSetupExpires: Date.now() + 30 * 60 * 1000,
     });
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -41,7 +42,6 @@ export const createUser = async (req, res) => {
       },
     });
     const resetUrl = `${process.env.FRONTEND_URL}/set-password?email=${email}&token=${passwordSetupToken}`;
-    // 6. TODO: send email with password setup link
     await transporter.sendMail({
       to: email,
       subject: "Set your password",
@@ -49,7 +49,7 @@ export const createUser = async (req, res) => {
     <h3>Welcome to Attendance System</h3>
     <p>Click the link below to set your password:</p>
     <a href="${resetUrl}">Set Password</a>
-    <p>This link will expire in 15 minutes.</p>
+    <p>This link will expire in 30 minutes.</p>
   `,
     });
 
@@ -71,7 +71,7 @@ export const createUser = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
   try {
-    const { email, token } = req.body;
+    const { email, token } = req.query;
 
     // 1. Validate input
     if (!email || !token) {
@@ -99,6 +99,8 @@ export const verifyToken = async (req, res) => {
     // 4. Token is valid
     return res.status(200).json({
       success: true,
+      token: token,
+      userName: user.userName,
       message: "Token is valid",
       email: user.email,
     });
@@ -107,6 +109,50 @@ export const verifyToken = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+};
+export const setPassword = async (req, res) => {
+  try {
+    const { email, token, password } = req.body;
+
+    // 1. Validate input
+    if (!email || !token || !password) {
+      return res.status(400).json({
+        message: "Email, token, and password are required",
+      });
+    }
+
+    // 2. Find user with valid token
+    const user = await User.findOne({
+      email,
+      passwordSetupToken: token,
+      passwordSetupExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired token",
+      });
+    }
+
+    // 3. Hash new password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // 4. Update user securely
+    user.password = hashedPassword;
+    user.passwordSetupToken = undefined;
+    user.passwordSetupExpires = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Something went wrong",
     });
   }
 };
