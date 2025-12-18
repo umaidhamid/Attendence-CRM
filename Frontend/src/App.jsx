@@ -6,7 +6,9 @@ import Login from "./pages/Login";
 // import SetPassword from "./pages/setPassword";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAppContext } from "./ContextApi/isAuth.js";
 const App = () => {
+  const { role, isAuth } = useAppContext();
   return (
     <div>
       <ToastContainer
@@ -18,12 +20,7 @@ const App = () => {
         draggable
         theme="dark"
       />
-      {/* <Link to="/login">Login Page</Link>
-      <br />
-      <Link to="/verify">Verify Page</Link> */}
       <Routes>
-        {/* <Route path="/" element={<SetPassword />} /> */}
-        {/* <Route path="/verify" element={<Verify />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="set-password" element={<Verify />} />
       </Routes>
