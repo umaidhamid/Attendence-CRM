@@ -1,80 +1,53 @@
-import React, { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-
-
+import SetPassword from "./setPassword";
+import api from "../../axios/axios";
 const Verify = () => {
-    const [searchParams]=useSearchParams();
-    const token=searchParams.get("token");
-    const email=searchParams.get("email");
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const email = searchParams.get("email");
 
-    const[formdata,setFormdata]=useState({
-        password:"",
-        confirmPassword:"",
-    })
+  const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(false);
+  const [error, setError] = useState("");
+  const [user, setuser] = useState("");
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/user/verifyToken`, {
+        params: {
+          email,
+          token,
+        },
+      })
+      .then((res) => {
+        setTimeout(() => {
+          setuser(res.data);
+          setLoading(false);
+          setVerifying(true);
+          console.log("helo");
+        }, 1500);
+      })
+      .catch((err) => {
+        console.log("error in catch ")
+        setTimeout(() => {
+          setLoading(false);
+          setError(err.response?.data?.message || "Verification failed");
+        }, 1500);
+      });
+  }, [email, token]);
 
-    const[loading,setLoading]=useState(true);
-    const[verifying,setVerifying]=useState(false);
-    const[error,setError]=useState(false)
-
-   useEffect(()=>{
-     const verifyToken=async()=>{
-        try{
-        const{data}=await axios.post("",{token,email})
-
-        if(data.success){
-            setVerifying(true);
-        }
-        else{
-            setError("Verification Denied")
-        }
-    }catch(e){
-        setError("Something Went Wrong")
-    }
-    finally{
-        setLoading(false)
-    }
-    }
-    verifyToken();
-   },[token,email])
-
-   const changeHandler=(e)=>{
-    setFormdata({
-        ...formdata,
-        [e.target.name]:e.target.value
-    })
-   }
-   const navigate = useNavigate();
-
-   const submitPassword=()=>{
-    if(formdata.password!=formdata.confirmPassword){
-        alert("Passwords Doesn't Match")
-    }
-    try{
-        const {data}=axios.post("",{token,email,password:formdata.password})
-        if(data.success){
-            alert("password setted sucessfully")
-            navigate("/login")
-        }
-        else{
-            alert(data.message)
-        }
-    }catch(e){
-        alert("something went wrong while setting pasword")
-    }
-   }
   return (
-    <div className='verify-content'>
-        {loading && <h2>Verifying the token</h2>}
-        {!loading && error &&<h2 style={{color:"red"}}>{error}</h2>}
-        {!loading && verifying && (<>
-          <h2>Set Your Password</h2>
-          <input name='password' placeholder='Enter the password' value={formdata.password} onChange={changeHandler} ></input>
-          <input name="confirmPassword" placeholder='"Confirm Password' value={formdata.confirmPassword} onChange={changeHandler} ></input>
-          <button onClick={submitPassword}>Submit</button>
-        </>)}
-    </div>
-  )
-}
+    <div className="w-full h-screen bg-gray-900 flex flex-col items-center justify-center gap-4">
+      {loading && (
+        <h2 className="text-3xl text-white">Verifying the user...</h2>
+      )}
 
-export default Verify
+      {!loading && error && <h2 className="text-red-500 text-xl">{error}</h2>}
+
+      {!loading && <SetPassword data={user} />}
+    </div>
+  );
+};
+
+export default Verify;
