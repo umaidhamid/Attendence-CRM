@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import api from "../../axios/axios";
+// import api from "../axios/axios.jsx";
 
 const SetPassword = ({ data }) => {
   const { userName, email, token } = data;
@@ -25,7 +25,11 @@ const SetPassword = ({ data }) => {
     setError("");
     setLoading(true);
     axios
-      .patch("http://localhost:5000/user/setpassword", { email, token, password })
+      .patch("http://localhost:5000/user/setpassword", {
+        email,
+        token,
+        password,
+      })
       .then((e) => {
         setTimeout(() => {
           toast.success("Password updated successfully!");
@@ -35,7 +39,7 @@ const SetPassword = ({ data }) => {
       })
       .catch((e) => {
         setLoading(false);
-        console.log(e.message)
+        console.log(e.message);
         toast.error(e.response?.data?.message || "Something went wrong");
       });
   };
