@@ -164,12 +164,10 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ msg: "Email and password are required" });
     }
 
-  
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ msg: "User does not exist" });
     }
-
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -198,4 +196,7 @@ export const loginUser = async (req, res) => {
     console.error(error);
     return res.status(500).json({ msg: "Server error" });
   }
+};
+export const getData = async (req, res) => {
+  
 };

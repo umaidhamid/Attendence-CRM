@@ -1,5 +1,5 @@
-import React, { useEffect, createContext, useContext, useState } from 'react';
-import api from '../axios/axios';
+import React, { useEffect, createContext, useContext, useState } from "react";
+import api from "../axios/axios";
 
 const appContext = createContext();
 
@@ -24,11 +24,7 @@ const AuthProvider = ({ children }) => {
 
   const value = { isAuth, setIsAuth, role, setRole };
 
-  return (
-    <appContext.Provider value={value}>
-      {children}
-    </appContext.Provider>
-  );
+  return <appContext.Provider value={value}>{children}</appContext.Provider>;
 };
 
 export default AuthProvider;
