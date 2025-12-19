@@ -3,6 +3,7 @@ import crypto from "crypto";
 import User from "../models/User.model.js";
 import nodemailer from "nodemailer";
 import GenerateToken from "../utils/GenrateToken.js";
+import Attendance from "../Models/Attendence.model.js"
 export const createUser = async (req, res) => {
   try {
     const { userName, email, role } = req.body;
@@ -198,5 +199,28 @@ export const loginUser = async (req, res) => {
   }
 };
 export const getData = async (req, res) => {
-  
+  try{
+  const { id } = req.user;
+  const user = await User.findById(id).select(
+    "-password  -passwordSetupToken -passwordSetupExpires"
+  );
+  if (!user) {
+    return res.status(404).json({ msg: "User not found" });
+  }
+
+  const attendance = await Attendance.find({ user: id })
+    .populate({
+      path: "status",
+      select: "status payment description isActive",
+    })
+    .sort({ date: -1 });
+
+        return res.status(200).json({
+      user,
+      attendance,
+    });
+} catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Server error" });
+  }
 };
