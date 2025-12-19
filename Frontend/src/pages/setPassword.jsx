@@ -3,7 +3,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import api from "../../axios/axios";
-
+import {usenavigate} from "react-router-dom";
+ 
 const SetPassword = ({ data }) => {
   const { userName, email, token } = data;
 
@@ -13,7 +14,7 @@ const SetPassword = ({ data }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setmessage] = useState("");
-
+  const navigate=usenavigate()
   const submitHandler = (e) => {
     e.preventDefault();
 
@@ -29,6 +30,9 @@ const SetPassword = ({ data }) => {
       .then((e) => {
         setTimeout(() => {
           toast.success("Password updated successfully!");
+          setTimeout(()=>{
+            navigate("/login")
+          },2000)
           console.log("Password set successfully");
           setLoading(false);
         }, 1000);

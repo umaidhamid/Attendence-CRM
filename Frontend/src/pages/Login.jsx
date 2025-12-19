@@ -22,11 +22,10 @@ const Login = () => {
       const { data } = await api("/user/login", {
         email: formdata.email,
         password: formdata.password
-      });
-
-      if (data.success) {
-        navigate('/home');
-      }
+      })
+      setTimeout(()=>{
+        navigate("/dashboard")
+      },2000)
     } catch (error) {
       console.log(error);
     }
